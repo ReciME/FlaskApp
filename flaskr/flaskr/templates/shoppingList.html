@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block body %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/testConfig.js') }}"></script>
+<center>
+  <h2>Here is Your Shopping List!</h2>
+  <h4><em>Enjoy Shopping!</em></h4><br>
+  {% for type in recipeList %}
+    <h2>{{type.upper()}}</h2>
+    <table class="table table-striped">
+      <thread>
+        <th style="width:20%">Name</th>
+        <th style="width:20%">Quantity</th>
+        <th style="width:5%">Measurement</th>
+      </thread>
+        <tbody>
+          {% for item in recipeList[type] %}
+            <tr>
+              <td>{{item.name}}</td>
+              <td>{{item.quantity}}</td>
+              <td>{{item.measurement}}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+  {% endfor %}
+  <button style="margin-bottom:10px" onclick=window.location.href="{{ url_for('downloadList')}}" type=button class="btn btn-success">
+    <span class="glyphicon glyphicon-download"></span> Download List
+  </button>
+</center>
+{% endblock %}

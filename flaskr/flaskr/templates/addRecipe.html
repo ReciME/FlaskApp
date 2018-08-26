@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block body %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/testConfig.js') }}"></script>
+<center>
+  <h2>Add a Recipe</h2>
+  <form style="width:50%" action="{{ url_for('createRecipe') }}" method=post enctype="multipart/form-data">
+    <div class="form-group">
+      <label for="title">Recipe Name:</label>
+      <input type="text" class="form-control" id="title" name="name" required>
+    </div>
+    <label for="itemsInput">Add All Ingredients</label>
+    <div class="input-group">
+      <input id="itemsInput" type=text class="form-control" name="items">
+      <datalist id="itemsInput">
+        {% for item in ingredients %}
+          <option value="{{ item.name }}, {{item.quantity}}, {{item.measurement}}"></option>
+        {% endfor %}
+      </datalist>
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="button" onclick="addEntry()">+</button>
+      </span>
+    </div>
+    <div class="input-group">
+      <center><div id="container"></div></center>
+      <div style="display: inline-block;" id="description"></div>
+    </div><br>
+    <div class="form-group">
+      <label for="picture">Picture</label>
+      <input type="file" class="form-control-file" id="picture" name="picture" multiple>
+      <small id="fileHelp" class="form-text text-muted">Upload picture of recipe</small>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+</center>
+{% endblock %}
