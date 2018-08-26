@@ -1,4 +1,4 @@
-from flaskr import db
+from application import db
 """
     The Database Tables
 

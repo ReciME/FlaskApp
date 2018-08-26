@@ -1,6 +1,6 @@
-from flaskr import *
-from flaskr.lib import *
-from flaskr.model import *
+from application import *
+from lib import *
+from model import *
 
 @app.route('/')
 def landing():

@@ -1,5 +1,5 @@
-from flaskr import *
-from flaskr.model import *
+from application import *
+from model import *
 
 #Checks if a given item is already in the database
 def isItem(itemTuple):
