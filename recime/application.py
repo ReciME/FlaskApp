@@ -20,7 +20,7 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 # the EBS environment
 if ('RDS_HOSTNAME' in os.environ):
     app.config.update(dict(
-        ENGINE='postgresql',
+        ENGINE='mysql',
         NAME=os.environ['RDS_DB_NAME'],
         USER=os.environ['RDS_USERNAME'],
         PASSWORD=os.environ['RDS_PASSWORD'],
@@ -36,7 +36,7 @@ else:
         for row in dbReader:
             dbDict[row[0]] = row[1]
     app.config.update(dict(
-        ENGINE='postgresql',
+        ENGINE='mysql',
         NAME=dbDict['NAME'],
         USER=dbDict['USER'],
         PASSWORD=dbDict['PASSWORD'],
@@ -45,7 +45,7 @@ else:
     ))
 
 # The database string for connecting to the database
-dbString = "postgresql://{0}:{1}@{2}:{3}/{4}".format(
+dbString = "mysql+pymysql://{0}:{1}@{2}:{3}/{4}".format(
     app.config['USER'],
     app.config['PASSWORD'],
     app.config['HOST'],

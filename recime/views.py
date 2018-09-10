@@ -8,7 +8,7 @@ def landing():
 
 @app.route('/addRecipe')
 def addRecipe():
-    ingredients = db.session.query(Item).all()
+    ingredients = db.session.query(Ingredient).all()
     return render_template('addRecipe.html', ingredients=ingredients)
 
 @app.route('/createRecipe', methods=['POST'])

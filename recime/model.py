@@ -21,14 +21,14 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, server_default=text("nextval('users_id_seq'::regclass)"))
     username = Column(String(255), nullable=False)
-    _pass = Column('pass', String(255), nullable=False)
+    _pass = Column('pass', String(128), nullable=False)
 
 
 class Recipe(Base):
     __tablename__ = 'recipes'
 
     id = Column(Integer, primary_key=True, server_default=text("nextval('recipes_id_seq'::regclass)"))
-    userid = Column(ForeignKey('users.id'), nullable=False)
+    userid = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(255))
     ingredients = Column(String(255))
     nutritionid = Column(Integer)
