@@ -3,7 +3,7 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/testConfig.js') }}"></script>
 <center>
 <h3>Creating Recipe for {{name}}</h3>
-<img src="static/pictures/{{pic}}" height="100" width="100">
+<img src="static/temp/{{pic}}" height="100" width="100">
 <form action="{{ url_for('addRecipeToDB', name=name) }}" method=post enctype="multipart/form-data">
 
   <table class="table table-striped">
@@ -26,7 +26,7 @@
             </select>
           </td>
           {% set qname = item + 'q' %}
-          <td><input name="{{qname}}" type="number" required/></td>
+          <td><input name="{{qname}}" type="number" step="0.01" required/></td>
           <td>
             {% set name = item + 'm' %}
             <select name="{{name}}">
@@ -38,6 +38,7 @@
         </tr>
       {% endfor %}
   </table>
+  <input name="recipeDesc" placeholder="What's the recipe dog?" type="text"/>
   <button type=submit class="btn btn-primary">Create Recipe</button>
 </form>
 </center>

@@ -56,6 +56,7 @@ def changeRecipe(recipeID):
 @app.route('/add/<name>', methods=['POST'])
 def addRecipeToDB(name):
     items = request.form.getlist('items')
+    recipeDesc = request.form.get('recipeDesc')
     itemsArr = []
     itemIDs = []
     for item in items:
@@ -67,7 +68,7 @@ def addRecipeToDB(name):
         if (not isItem(tup)):
             itemIDs.append(createItem(tup))
         else:
-            ingredient = db.session.query(Item).filter_by(name = tup[0], quantity = tup[1], measurement = tup[2], type = tup[3]).all()
+            ingredient = db.session.query(Ingredient).filter_by(name = tup[0], quantity = tup[1], measurement = tup[2], type = tup[3]).all()
             itemIDs.append(ingredient[0].id)
     recipeName = name.split("/")[len(name.split("/")) - 1].split(".")[0]
     listOfItems = ""
@@ -76,7 +77,7 @@ def addRecipeToDB(name):
             listOfItems = str(ide)
         else:
             listOfItems = listOfItems + " ," + str(ide)
-    newRecipe = Recipe(name = recipeName, listOfItems = listOfItems, file = getFileName(name))
+    newRecipe = Recipe(userid = app.config['USERID'], name = recipeName, ingredients = listOfItems, img = getFileName(name), recipe = recipeDesc)
     db.session.add(newRecipe)
     db.session.commit()
     return redirect(url_for('landing'))

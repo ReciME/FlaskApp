@@ -11,7 +11,9 @@ app.config.update(dict(
     SECRET_KEY ='lht+)8on!@s)dw!ikizr=59h=4f8x=vziupnpnv-h=8fh)ki*g',
     CURR_RECIPE = None,
     TYPES = ["Produce", "Can", "Pasta", "Meat", "Spice", "Dairy", "Other"],
-    MEASUREMENTS = ["Ounces", "Pounds", "Quantity", "Table Spoon", "Tea Spoon", "Cups"]
+    MEASUREMENTS = ["Ounces", "Pounds", "Quantity", "Table Spoon", "Tea Spoon", "Cups"],
+    PICS = 'static/temp',
+    USERID = '1'
 ))
 
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)

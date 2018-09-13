@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, LargeBinary, String, Text, text
+from sqlalchemy import Column, ForeignKey, Integer, LargeBinary, String, Text, text, Numeric
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -9,17 +9,17 @@ metadata = Base.metadata
 class Ingredient(Base):
     __tablename__ = 'ingredients'
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('ingredients_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     type = Column(String(255))
     name = Column(String(255))
-    quantity = Column(Integer)
+    quantity = Column(Numeric)
     measurement = Column(String(255))
 
 
 class User(Base):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('users_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)
     _pass = Column('pass', String(128), nullable=False)
 
@@ -27,12 +27,12 @@ class User(Base):
 class Recipe(Base):
     __tablename__ = 'recipes'
 
-    id = Column(Integer, primary_key=True, server_default=text("nextval('recipes_id_seq'::regclass)"))
+    id = Column(Integer, primary_key=True)
     userid = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(255))
     ingredients = Column(String(255))
     nutritionid = Column(Integer)
-    img = Column(LargeBinary)
+    img = Column(Text)
     recipe = Column(Text)
 
     user = relationship('User')

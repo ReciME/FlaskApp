@@ -7,7 +7,7 @@ def isItem(itemTuple):
     quant = itemTuple[1]
     meas = itemTuple[2]
     typ = itemTuple[3]
-    ingredient = db.session.query(Item).filter_by(name = nm, quantity = quant, measurement = meas, type = typ).all()
+    ingredient = db.session.query(Ingredient).filter_by(name = nm, quantity = quant, measurement = meas, type = typ).all()
     if (len(ingredient) > 0):
         return True
     return False
@@ -19,7 +19,7 @@ def createItem(itemTuple):
     quant = itemTuple[1]
     meas = itemTuple[2]
     typ = itemTuple[3]
-    newItem = Item(type=typ, name=name, quantity=quant, measurement=meas)
+    newItem = Ingredient(type=typ, name=name, quantity=quant, measurement=meas)
     db.session.add(newItem)
     db.session.commit()
     return newItem.id
