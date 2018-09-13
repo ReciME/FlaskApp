@@ -46,11 +46,11 @@ def deleteRecipes():
 @app.route('/changeRecipe/<recipeID>')
 def changeRecipe(recipeID):
     recipe = db.session.query(Recipe).filter_by(id = recipeID).first()
-    items = recipe.listOfItems
+    items = recipe.ingredients
     itemList = []
     for item in items.split(","):
         if (item is not "" and item is not None):
-            itemList.append(db.session.query(Item).filter_by(id = item).first())
+            itemList.append(db.session.query(Ingredient).filter_by(id = item).first())
     return render_template('changeRecipe.html', measurements=app.config['MEASUREMENTS'], types=app.config['TYPES'], recipe=recipe, items=itemList, pic=getFileName(recipe.name))
 
 @app.route('/add/<name>', methods=['POST'])
@@ -122,9 +122,9 @@ def updateRecipe(recipeID):
     itemsArr = []
     itemIDs = []
     recipe = db.session.query(Recipe).filter_by(id = recipeID).first()
-    items = recipe.listOfItems
+    items = recipe.ingredients
     for itemID in items.split(","):
-        item = db.session.query(Item).filter_by(id = itemID).first()
+        item = db.session.query(Ingredient).filter_by(id = itemID).first()
         print(item.name, request.form.get(str(item.name) + 'q'), request.form.get(item.name + 'm'), request.form.get(item.name + 't'))
         itemsArr.append((str(item.name),
                         request.form.get(str(item.name) + 'q'),
@@ -134,7 +134,7 @@ def updateRecipe(recipeID):
         if (not isItem(tup)):
             itemIDs.append(createItem(tup))
         else:
-            ingredient = db.session.query(Item).filter_by(name = tup[0], quantity = tup[1], measurement = tup[2], type = tup[3]).all()
+            ingredient = db.session.query(Ingredient).filter_by(name = tup[0], quantity = tup[1], measurement = tup[2], type = tup[3]).all()
             itemIDs.append(ingredient[0].id)
     listOfItems = ""
     for ide in itemIDs:
@@ -142,7 +142,7 @@ def updateRecipe(recipeID):
             listOfItems = str(ide)
         else:
             listOfItems = listOfItems + " ," + str(ide)
-    recipe.listOfItems = listOfItems
+    recipe.ingredients = listOfItems
     db.session.commit()
     return redirect(url_for('landing'))
 
