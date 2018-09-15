@@ -94,9 +94,9 @@ def createShoppingList():
     for ide in recipes:
         recipe = db.session.query(Recipe).filter_by(id = ide).first()
         recipeName = recipe.name
-        recipeFile = recipe.file
-        for itemID in recipe.listOfItems.split(","):
-            item = db.session.query(Item).filter_by(id = itemID).first()
+        recipeFile = recipe.img
+        for itemID in recipe.ingredients.split(","):
+            item = db.session.query(Ingredient).filter_by(id = itemID).first()
             try:
                 recipeList[item.type].append(item)
             except:
@@ -126,10 +126,19 @@ def updateRecipe(recipeID):
     for itemID in items.split(","):
         item = db.session.query(Ingredient).filter_by(id = itemID).first()
         print(item.name, request.form.get(str(item.name) + 'q'), request.form.get(item.name + 'm'), request.form.get(item.name + 't'))
-        itemsArr.append((str(item.name),
-                        request.form.get(str(item.name) + 'q'),
-                        request.form.get(str(item.name) + 'm'),
-                        request.form.get(str(item.name) + 't')));
+        quantity = request.form.get(str(item.name) + 'q')
+        measurement = request.form.get(str(item.name) + 'm')
+        type = request.form.get(str(item.name) + 't')
+
+        # Update the ingredient in the db if changed
+        if (quantity != str(item.quantity) or measurement != str(item.measurement) or type != str(item.type)):
+            item.quantity = quantity
+            item.measurement = measurement
+            item.type = type
+            db.session.commit()
+
+        #Add the ingredient to our items array to change the recipe later
+        itemsArr.append((str(item.name), quantity, measurement, type));
     for tup in itemsArr:
         if (not isItem(tup)):
             itemIDs.append(createItem(tup))
@@ -148,7 +157,6 @@ def updateRecipe(recipeID):
 
 @app.route('/download')
 def downloadList():
-    print("\n\n\nIAMQWOKIGN\n\n\n\n")
     recipeList = app.config['CURR_RECIPE']
     newFile = os.path.join(app.config['DOCS'], 'shoppingList.txt')
     output = open(newFile, 'w')
@@ -160,5 +168,5 @@ def downloadList():
             output.write("\n")
         output.write("==========================================================================")
     output.close()
-    retFile = 'documents/' + 'shoppingList.txt'
+    retFile = 'utils/documents/' + 'shoppingList.txt'
     return send_file(retFile, as_attachment=True, mimetype='text/plain')
