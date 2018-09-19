@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% block body %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/todo.js') }}"></script>
+<center>
+<h3>Reading list for {{list.name}}</h3>
+  <table class="table table-striped">
+    <thread>
+      <th>Ingredient</th>
+      <th>Type</th>
+      <th>Quantity</th>
+      <th>Measurement</th>
+    </thread>
+    <tbody>
+      {% for item in ingredients %}
+        <tr>
+          <td><input id="box{{item.id}}" type=checkbox value={{item.id}} name=list onclick="check({{item.id}});"/></td>
+          <td><p name="{{item.id}}">{{item.name}}</p></td>
+          <td><p name="{{item.id}}">{{item.type}}</p></td>
+          <td><p name="{{item.id}}">{{item.quantity}}</p></td>
+          <td><p name="{{item.id}}">{{item.measurement}}</p></td>
+        </tr>
+      {% endfor %}
+  </table>
+</center>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Select the List</h2>
+<table>
+  <thread>
+    <th style="width:30%" ></th>
+    <th style="width:30%" ></th>
+    <th style="width:30%" ></th>
+  </thread>
+  <tbody>
+    {% set counter = 0 %}
+    {% for list in lists %}
+      {% if loop.index % 4 == 0 %}
+        <tr>
+          <td>
+            <div>
+              <h2 style="cursor:pointer;" onclick=window.location.href="{{ url_for('openList', listID=list.id)}}">{{list.name}}</h2>
+            </div>
+          </td>
+          {% set counter = counter + 1 %}
+      {% elif loop.index % 4 == 3 %}
+          <td>
+            <div>
+              <h2 style="cursor:pointer;" onclick=window.location.href="{{ url_for('openList', listID=list.id)}}">{{list.name}}</h2>
+            </div>
+          </td>
+        </tr>
+        {% set counter = 0 %}
+      {% else %}
+        <td>
+          <div>
+            <h2 style="cursor:pointer;" onclick=window.location.href="{{ url_for('openList', listID=list.id)}}">{{list.name}}</h2>
+          </div>
+        </td>
+        {% set counter = counter + 1 %}
+      {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
