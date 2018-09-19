@@ -87,6 +87,21 @@ def startShoppingList():
     recipes = db.session.query(Recipe).all()
     return render_template("startShoppingList.html", recipes=recipes)
 
+@app.route('/readList')
+def readList():
+    lists = db.session.query(List).all()
+    return render_template("readShoppingLists.html", lists=lists)
+
+@app.route('/openList/<listID>')
+def openList(listID):
+    list = db.session.query(List).filter_by(id = listID).first()
+    items = list.ingredients
+    itemList = []
+    for item in items.split(","):
+        if (item is not "" and item is not None):
+            itemList.append(db.session.query(Ingredient).filter_by(id = item).first())
+    return render_template("readShoppingList.html", ingredients=itemList, list=list)
+
 @app.route('/createList', methods=['POST'])
 def createShoppingList():
     recipes = request.form.getlist('recipe')
@@ -108,6 +123,7 @@ def createShoppingList():
 @app.route('/finalize', methods=['POST'])
 def finalizeShoppingList():
     currList = app.config['CURR_RECIPE']
+    listName = request.form.get("name")
     for itemType in currList:
         delItems = request.form.getlist(itemType)
         for itemID in delItems:
@@ -115,6 +131,7 @@ def finalizeShoppingList():
                 if (i.id == int(itemID)):
                     currList[itemType].remove(i)
     app.config['CURR_RECIPE'] = currList
+    db_createShoppingList(listName, currList)
     return render_template('shoppingList.html', recipeList=currList)
 
 @app.route('/updateRecipe/<recipeID>', methods=['POST'])

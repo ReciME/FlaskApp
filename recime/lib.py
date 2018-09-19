@@ -60,3 +60,17 @@ def reduceList(recipeList):
         for index in delList:
             recipeList[itemType].remove(index)
     return recipeList
+
+#Adds a new entry into the shopping list table
+def db_createShoppingList(listName, currList):
+    ingredients = ""
+    for type in currList:
+        for item in currList[type]:
+            if (ingredients == ""):
+                ingredients = str(item.id)
+            else:
+                ingredients = ingredients + "," + str(item.id)
+    newList = List(userid=app.config['USERID'], name=listName, ingredients=ingredients)
+    db.session.add(newList)
+    db.session.commit()
+    return newList.id

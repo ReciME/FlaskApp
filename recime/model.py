@@ -23,6 +23,15 @@ class User(Base):
     username = Column(String(255), nullable=False)
     _pass = Column('pass', String(128), nullable=False)
 
+class List(Base):
+    __tablename__ = 'lists'
+
+    id = Column(Integer, primary_key=True)
+    userid = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String(255))
+    ingredients = Column(String(255))
+
+    user = relationship('User')
 
 class Recipe(Base):
     __tablename__ = 'recipes'
