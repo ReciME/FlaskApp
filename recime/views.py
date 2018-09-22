@@ -2,13 +2,21 @@ from application import *
 from lib import *
 from model import *
 
+###############################################################################
+## Landing Views                                                             ##
+###############################################################################
+
 @app.route('/')
 def landing():
     return render_template('landing.html')
 
+###############################################################################
+## Add Recipe Views                                                          ##
+###############################################################################
+
 @app.route('/addRecipe')
 def addRecipe():
-    ingredients = db.session.query(Ingredient).all()
+    ingredients = db_getIngredients()
     return render_template('addRecipe.html', ingredients=ingredients)
 
 @app.route('/createRecipe', methods=['POST'])
@@ -22,36 +30,12 @@ def createRecipe():
             itemArr.append(item)
     print("Name: ", name)
     for f in pic:
-        f.filename = createFileName(name, f.filename.split(".")[len(f.filename.split(".")) - 1])
+        f.filename = db_createFileName(name, f.filename.split(".")[len(f.filename.split(".")) - 1])
         f.save(os.path.join(app.config['PICS'], f.filename))
         print("File: ", f)
     for i in items:
         print("Item: ", i)
     return render_template('editRecipe.html', measurements=app.config['MEASUREMENTS'], types=app.config['TYPES'], name=name, pic=pic[0].filename, items=itemArr)
-
-@app.route('/editRecipe')
-def editRecipe():
-    recipes = db.session.query(Recipe).all()
-    return render_template("editRecipes.html", recipes=recipes)
-
-@app.route('/deleteRecipes', methods=['POST'])
-def deleteRecipes():
-    recipes = request.form.getlist('recipe')
-    for ide in recipes:
-        recipe = db.session.query(Recipe).filter_by(id = ide).delete()
-    db.session.commit()
-    flash("Recipe Successfully Deleted")
-    return redirect(url_for('landing'))
-
-@app.route('/changeRecipe/<recipeID>')
-def changeRecipe(recipeID):
-    recipe = db.session.query(Recipe).filter_by(id = recipeID).first()
-    items = recipe.ingredients
-    itemList = []
-    for item in items.split(","):
-        if (item is not "" and item is not None):
-            itemList.append(db.session.query(Ingredient).filter_by(id = item).first())
-    return render_template('changeRecipe.html', measurements=app.config['MEASUREMENTS'], types=app.config['TYPES'], recipe=recipe, items=itemList, pic=getFileName(recipe.name))
 
 @app.route('/add/<name>', methods=['POST'])
 def addRecipeToDB(name):
@@ -65,10 +49,10 @@ def addRecipeToDB(name):
                         request.form.get(str(item) + 'm'),
                         request.form.get(str(item) + 't')));
     for tup in itemsArr:
-        if (not isItem(tup)):
-            itemIDs.append(createItem(tup))
+        if (not db_isItem(tup)):
+            itemIDs.append(db_createItem(tup))
         else:
-            ingredient = db.session.query(Ingredient).filter_by(name = tup[0], quantity = tup[1], measurement = tup[2], type = tup[3]).all()
+            ingredient = db_getIngredientsNoID(tup[0], tup[1], tup[2], tup[3])
             itemIDs.append(ingredient[0].id)
     recipeName = name.split("/")[len(name.split("/")) - 1].split(".")[0]
     listOfItems = ""
@@ -77,46 +61,102 @@ def addRecipeToDB(name):
             listOfItems = str(ide)
         else:
             listOfItems = listOfItems + " ," + str(ide)
-    newRecipe = Recipe(userid = app.config['USERID'], name = recipeName, ingredients = listOfItems, img = getFileName(name), recipe = recipeDesc)
-    db.session.add(newRecipe)
-    db.session.commit()
+    db_addRecipe(
+        app.config['USERID'],
+        recipeName,
+        listOfItems,
+        db_getFileName(name),
+        recipeDesc
+    )
     return redirect(url_for('landing'))
 
-@app.route('/startShopping')
-def startShoppingList():
-    recipes = db.session.query(Recipe).all()
-    return render_template("startShoppingList.html", recipes=recipes)
+###############################################################################
+## Edit Recipe Views                                                         ##
+###############################################################################
 
-@app.route('/readList')
-def readList():
-    lists = db.session.query(List).all()
-    return render_template("readShoppingLists.html", lists=lists)
+@app.route('/editRecipe')
+def editRecipe():
+    recipes = db_getRecipes()
+    return render_template("editRecipes.html", recipes=recipes)
 
-@app.route('/openList/<listID>')
-def openList(listID):
-    list = db.session.query(List).filter_by(id = listID).first()
-    items = list.ingredients
+@app.route('/deleteRecipes', methods=['POST'])
+def deleteRecipes():
+    recipes = request.form.getlist('recipe')
+    db_deleteRecipes(recipes)
+    flash("Recipe Successfully Deleted")
+    return redirect(url_for('landing'))
+
+@app.route('/changeRecipe/<recipeID>')
+def changeRecipe(recipeID):
+    recipe = db_getRecipe(recipeID)
+    items = recipe.ingredients
     itemList = []
     for item in items.split(","):
         if (item is not "" and item is not None):
-            itemList.append(db.session.query(Ingredient).filter_by(id = item).first())
-    return render_template("readShoppingList.html", ingredients=itemList, list=list)
+            itemList.append(db_getIngredient(item))
+    return render_template('changeRecipe.html', measurements=app.config['MEASUREMENTS'], types=app.config['TYPES'], recipe=recipe, items=itemList, pic=db_getFileName(recipe.name))
+
+@app.route('/updateRecipe/<recipeID>', methods=['POST'])
+def updateRecipe(recipeID):
+    itemsArr = []
+    itemIDs = []
+    recipe = db_getRecipe(recipeID)
+    items = recipe.ingredients
+    for itemID in items.split(","):
+        item = db_getIngredient(itemID)
+        print(item.name, request.form.get(str(item.name) + 'q'), request.form.get(item.name + 'm'), request.form.get(item.name + 't'))
+        quantity = request.form.get(str(item.name) + 'q')
+        measurement = request.form.get(str(item.name) + 'm')
+        type = request.form.get(str(item.name) + 't')
+
+        # Update the ingredient in the db if changed
+        # if (quantity != str(item.quantity) or measurement != str(item.measurement) or type != str(item.type)):
+        #     item.quantity = quantity
+        #     item.measurement = measurement
+        #     item.type = type
+        #     db.session.commit()
+
+        #Add the ingredient to our items array to change the recipe later
+        itemsArr.append((str(item.name), quantity, measurement, type));
+    for tup in itemsArr:
+        if (not db_isItem(tup)):
+            itemIDs.append(db_createItem(tup))
+        else:
+            ingredient = db_getIngredientsNoID(tup[0], tup[1], tup[2], tup[3])
+            itemIDs.append(ingredient[0].id)
+    listOfItems = ""
+    for ide in itemIDs:
+        if (listOfItems == ""):
+            listOfItems = str(ide)
+        else:
+            listOfItems = listOfItems + " ," + str(ide)
+    db_updateRecipe(recipeID, listOfItems)
+    return redirect(url_for('landing'))
+
+###############################################################################
+## Create Shopping List Views                                                ##
+###############################################################################
+
+@app.route('/startShopping')
+def startShoppingList():
+    recipes = db_getRecipes()
+    return render_template("startShoppingList.html", recipes=recipes)
 
 @app.route('/createList', methods=['POST'])
 def createShoppingList():
     recipes = request.form.getlist('recipe')
     recipeList = {}
     for ide in recipes:
-        recipe = db.session.query(Recipe).filter_by(id = ide).first()
+        recipe = db_getRecipe(ide)
         recipeName = recipe.name
         recipeFile = recipe.img
         for itemID in recipe.ingredients.split(","):
-            item = db.session.query(Ingredient).filter_by(id = itemID).first()
+            item = db_getIngredient(itemID)
             try:
                 recipeList[item.type].append(item)
             except:
                 recipeList[item.type] = [item]
-    recipeList = reduceList(recipeList)
+    recipeList = db_reduceList(recipeList)
     app.config['CURR_RECIPE'] = recipeList
     return render_template('generateList.html', recipeList=recipeList)
 
@@ -134,56 +174,21 @@ def finalizeShoppingList():
     db_createShoppingList(listName, currList)
     return render_template('shoppingList.html', recipeList=currList)
 
-@app.route('/updateRecipe/<recipeID>', methods=['POST'])
-def updateRecipe(recipeID):
-    itemsArr = []
-    itemIDs = []
-    recipe = db.session.query(Recipe).filter_by(id = recipeID).first()
-    items = recipe.ingredients
-    for itemID in items.split(","):
-        item = db.session.query(Ingredient).filter_by(id = itemID).first()
-        print(item.name, request.form.get(str(item.name) + 'q'), request.form.get(item.name + 'm'), request.form.get(item.name + 't'))
-        quantity = request.form.get(str(item.name) + 'q')
-        measurement = request.form.get(str(item.name) + 'm')
-        type = request.form.get(str(item.name) + 't')
+###############################################################################
+## Read Shopping List Views                                                  ##
+###############################################################################
 
-        # Update the ingredient in the db if changed
-        if (quantity != str(item.quantity) or measurement != str(item.measurement) or type != str(item.type)):
-            item.quantity = quantity
-            item.measurement = measurement
-            item.type = type
-            db.session.commit()
+@app.route('/readList')
+def readList():
+    lists = db_getLists()
+    return render_template("readShoppingLists.html", lists=lists)
 
-        #Add the ingredient to our items array to change the recipe later
-        itemsArr.append((str(item.name), quantity, measurement, type));
-    for tup in itemsArr:
-        if (not isItem(tup)):
-            itemIDs.append(createItem(tup))
-        else:
-            ingredient = db.session.query(Ingredient).filter_by(name = tup[0], quantity = tup[1], measurement = tup[2], type = tup[3]).all()
-            itemIDs.append(ingredient[0].id)
-    listOfItems = ""
-    for ide in itemIDs:
-        if (listOfItems == ""):
-            listOfItems = str(ide)
-        else:
-            listOfItems = listOfItems + " ," + str(ide)
-    recipe.ingredients = listOfItems
-    db.session.commit()
-    return redirect(url_for('landing'))
-
-@app.route('/download')
-def downloadList():
-    recipeList = app.config['CURR_RECIPE']
-    newFile = os.path.join(app.config['DOCS'], 'shoppingList.txt')
-    output = open(newFile, 'w')
-    for t in recipeList:
-        output.write("\t" + str(t).upper())
-        output.write("\n\n")
-        for item in recipeList[t]:
-            output.write("   * " + str(item.name) + " " + str(item.quantity) + " " + str(item.measurement))
-            output.write("\n")
-        output.write("==========================================================================")
-    output.close()
-    retFile = 'utils/documents/' + 'shoppingList.txt'
-    return send_file(retFile, as_attachment=True, mimetype='text/plain')
+@app.route('/openList/<listID>')
+def openList(listID):
+    list = db_getList(listID)
+    items = list.ingredients
+    itemList = []
+    for item in items.split(","):
+        if (item is not "" and item is not None):
+            itemList.append(db_getIngredient(item))
+    return render_template("readShoppingList.html", ingredients=itemList, list=list)
