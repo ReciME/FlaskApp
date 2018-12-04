@@ -62,6 +62,7 @@ db = SQLAlchemy(app)
 
 #This will essentially tell flask where the first url route '/' is located.
 from views import *
+from api import *
 
 if __name__ == "__main__":
     app.run()
