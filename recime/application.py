@@ -55,6 +55,7 @@ dbString = "mysql+pymysql://{0}:{1}@{2}:{3}/{4}".format(
     app.config['PORT'],
     app.config['NAME']
 )
+print(dbString)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = dbString
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
